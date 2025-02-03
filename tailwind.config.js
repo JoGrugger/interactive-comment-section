@@ -10,5 +10,8 @@ export default {
 		extend: {}
 	},
 
-	plugins: [typography, forms, containerQueries]
+	plugins: [require('daisyui'), containerQueries, forms, typography],
+	daisyui: {
+		themes: ['light']
+	}
 };

@@ -1,106 +1,48 @@
 <script>
-	export let comment; // Ein Kommentar
-	export let currentUser; // Benutzer
-	import ReplyList from './ReplyList.svelte';
+	import {
+		deleteComment,
+		updateComment,
+		addReply,
+		upvoteComment,
+		downvoteComment
+	} from '$lib/stores/comments';
+	import CommentItem from './CommentItem.svelte';
+	import Reply from './Reply.svelte';
 
-	let isEditing = false; // Bearbeitungsmodus
-	let editedContent = comment.content;
-	let showReplyInput = false; // Reply-Eingabe anzeigen
-	let replyContent = '';
+	export let comment;
 
-	const upvote = () => comment.score++;
-	const downvote = () => comment.score--;
+	function handleDelete(id) {
+		deleteComment(id);
+	}
 
-	const startEdit = () => {
-		isEditing = true;
-	};
+	function handleUpdate(id, content) {
+		updateComment(id, content);
+	}
 
-	const saveEdit = () => {
-		comment.content = editedContent;
-		isEditing = false;
-	};
+	function handleReply(id, reply) {
+		addReply(id, reply);
+	}
 
-	const deleteComment = () => {
-		// Kommentar aus der Liste löschen (Logik muss angepasst werden)
-	};
+	function handleUpvote(id) {
+		upvoteComment(id);
+	}
 
-	const addReply = () => {
-		if (replyContent.trim() !== '') {
-			comment.replies = [
-				...comment.replies,
-				{
-					id: Date.now(),
-					content: replyContent,
-					createdAt: 'Just now',
-					replyingTo: comment.user.username,
-					user: { ...currentUser }
-				}
-			];
-			replyContent = '';
-			showReplyInput = false;
-		}
-	};
+	function handleDownvote(id) {
+		downvoteComment(id);
+	}
 </script>
 
-<div class="border-b py-4">
-	<div class="flex items-start gap-4">
-		<!-- Upvote/Downvote -->
-		<div class="flex flex-col items-center">
-			<button on:click={upvote} class="text-blue-500">+</button>
-			<p>{comment.score}</p>
-			<button on:click={downvote} class="text-red-500">-</button>
-		</div>
+<CommentItem
+	item={comment}
+	onDelete={handleDelete}
+	onUpdate={handleUpdate}
+	onReply={handleReply}
+	onUpvote={() => handleUpvote(comment.id)}
+	onDownvote={() => handleDownvote(comment.id)}
+/>
 
-		<!-- Kommentarinhalt -->
-		<div class="flex-1">
-			<div class="flex justify-between">
-				<div>
-					<p class="font-bold">{comment.user.username}</p>
-					<p class="text-sm text-gray-500">{comment.createdAt}</p>
-				</div>
-
-				<!-- Aktionen für eigenen Kommentar -->
-				{#if comment.user.username === currentUser.username}
-					<div class="flex gap-2">
-						<button on:click={deleteComment} class="text-red-500 hover:underline">Delete</button>
-						<button on:click={startEdit} class="text-blue-500 hover:underline">Edit</button>
-					</div>
-				{:else}
-					<button
-						on:click={() => (showReplyInput = !showReplyInput)}
-						class="text-blue-500 hover:underline">Reply</button
-					>
-				{/if}
-			</div>
-
-			<!-- Bearbeitungsmodus -->
-			{#if isEditing}
-				<textarea bind:value={editedContent} class="mt-2 w-full border"></textarea>
-				<button on:click={saveEdit} class="mt-2 rounded bg-blue-500 px-4 py-1 text-white">
-					Save
-				</button>
-			{:else}
-				<p class="mt-2">{comment.content}</p>
-			{/if}
-
-			<!-- Reply-Eingabe -->
-			{#if showReplyInput}
-				<div class="mt-2">
-					<textarea
-						bind:value={replyContent}
-						placeholder="Write a reply..."
-						class="w-full rounded border p-2"
-					></textarea>
-					<button on:click={addReply} class="mt-2 rounded bg-blue-500 px-4 py-1 text-white">
-						Reply
-					</button>
-				</div>
-			{/if}
-		</div>
-	</div>
-
-	<!-- Replies -->
-	{#if comment.replies.length > 0}
-		<ReplyList {comment} {currentUser} />
-	{/if}
+<div class="ml-8 mt-2 space-y-4 border-l-2 pl-8">
+	{#each comment.replies as reply}
+		<Reply {reply} />
+	{/each}
 </div>
